@@ -12,7 +12,7 @@ interface ITaskForm {
 
 export const TaskForm = ({ onCreateTask, isAuthReady, onClose }: ITaskForm) => {
   const [description, setDescription] = useState("");
-  const [taskDeadline, setTaskDeadline] = useState(null);
+  const [taskDeadline, setTaskDeadline] = useState<string | undefined>(undefined);
   const [hasDeadline, setHasDeadline] = useState(false);
   const [alertInfo, setAlertInfo] = useState({ isOpen: false, message: "" });
 
@@ -40,7 +40,7 @@ export const TaskForm = ({ onCreateTask, isAuthReady, onClose }: ITaskForm) => {
     });
 
     setDescription("");
-    setTaskDeadline(null);
+    setTaskDeadline(undefined);
 
     if (onClose) {
       onClose();

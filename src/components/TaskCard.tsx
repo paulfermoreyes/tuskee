@@ -1,7 +1,6 @@
 // components/OrderCard.tsx
 "use client";
 
-import { COLUMNS } from "@/constants";
 import { TTask } from "@/types";
 import { formatDate } from "@/utils";
 import { Draggable } from "@hello-pangea/dnd"; // Import Draggable
@@ -14,7 +13,7 @@ interface ITaskCard {
 }
 
 export const TaskCard = ({
-  task: task,
+  task,
   index,
   onOpenDetailsModal,
 }: ITaskCard) => {

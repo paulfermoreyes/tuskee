@@ -1,6 +1,5 @@
 "use client";
 
-import { TaskForm } from "@/components/TaskForm";
 import { AlertModal } from "@/components/AlertModal";
 import { ConfettiCannon } from "@/components/Confetti";
 import { DateSelectionModal } from "@/components/DateSelectionModal";
@@ -205,8 +204,6 @@ export default function TaskPage() {
     // If the column changed, trigger the date selection modal and status update
     if (source.droppableId !== destination.droppableId) {
       const newStatus = destination.droppableId;
-      let currentStatusDate: string | null = null;
-
       const updateData: { status: string; [key: string]: string | Timestamp | null } = {
         status: newStatus,
       };
