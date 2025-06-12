@@ -9,13 +9,22 @@ import { APP_ID, COLUMNS, TASK_COLLECTION_NAME } from "@/constants";
 import { auth, db } from "@/lib/firebase";
 import { TTask, TAlertInfo, TDateModalData } from "@/types";
 import { onAuthStateChanged, signInAnonymously } from "firebase/auth";
-import { query, collection, onSnapshot, addDoc, serverTimestamp, Timestamp, doc, updateDoc } from "firebase/firestore";
+import {
+  query,
+  collection,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+  Timestamp,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { useState, useEffect } from "react";
+import clsx from "clsx";
 
 // Import DragDropContext and DropResult from @hello-pangea/dnd
-import { DragDropContext, DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
-
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<TTask[]>([]);
@@ -28,13 +37,14 @@ export default function TaskPage() {
   const [triggerConfetti, setTriggerConfetti] = useState<number>(0);
 
   const [isDateModalOpen, setIsDateModalOpen] = useState<boolean>(false);
-  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState<boolean>(false);
+  const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] =
+    useState<boolean>(false);
   const [dateModalData, setDateModalData] = useState<TDateModalData>({
     taskId: null,
     newStatus: null,
     dateField: null,
-    statusTitle: '',
-    currentStatusDate: '',
+    statusTitle: "",
+    currentStatusDate: "",
   });
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
@@ -93,10 +103,7 @@ export default function TaskPage() {
     return () => unsubscribe();
   }, [isAuthReady]);
 
-  const handleCreateTask = async ({
-    description,
-    taskDeadline
-  }: TTask) => {
+  const handleCreateTask = async ({ description, taskDeadline }: TTask) => {
     if (!isAuthReady || !db || !userId) {
       setAlertInfo({
         isOpen: true,
@@ -142,7 +149,10 @@ export default function TaskPage() {
       const tasksCollectionPath = `artifacts/${APP_ID}/public/data/${TASK_COLLECTION_NAME}`;
       const taskRef = doc(db, tasksCollectionPath, taskId);
       // Ensure updateData keys match Firestore field names and types
-      const updateData: { status: string; [key: string]: string | Timestamp | null } = {
+      const updateData: {
+        status: string;
+        [key: string]: string | Timestamp | null;
+      } = {
         status: newStatus,
       };
       updateData[dateField] = Timestamp.fromDate(new Date(selectedDate));
@@ -150,8 +160,7 @@ export default function TaskPage() {
       console.log(
         `Task ${taskId} status updated to ${newStatus} with date ${selectedDate} in Firestore.`
       );
-      if (newStatus === "done")
-        setTriggerConfetti((prev: number) => prev + 1);
+      if (newStatus === "done") setTriggerConfetti((prev: number) => prev + 1);
     } catch (error: unknown) {
       console.error("Error updating order status in Firestore:", error);
       const errorMessage =
@@ -166,8 +175,8 @@ export default function TaskPage() {
         taskId: null,
         newStatus: null,
         dateField: null,
-        statusTitle: '',
-        currentStatusDate: '',
+        statusTitle: "",
+        currentStatusDate: "",
       });
     }
   };
@@ -184,12 +193,12 @@ export default function TaskPage() {
   const onDragEnd = async (result: DropResult) => {
     const { source, destination, draggableId } = result;
 
-    // 1. Dropped outside any droppable area
+    // Condition #1: Dropped outside any droppable area
     if (!destination) {
       return;
     }
 
-    // 2. Did not move to a new position or column (same droppable, same index)
+    // Condition #2: Did not move to a new position or column (same droppable, same index)
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -198,23 +207,23 @@ export default function TaskPage() {
     }
 
     // Find the task that was dragged
-    const draggedTask = tasks.find(task => task.id === draggableId);
+    const draggedTask = tasks.find((task) => task.id === draggableId);
     if (!draggedTask) return;
 
     // If the column changed, trigger the date selection modal and status update
     if (source.droppableId !== destination.droppableId) {
       const newStatus = destination.droppableId;
-      const updateData: { status: string; [key: string]: string | Timestamp | null } = {
+      const updateData: {
+        status: string;
+        [key: string]: string | Timestamp | null;
+      } = {
         status: newStatus,
       };
-
 
       const tasksCollectionPath = `artifacts/${APP_ID}/public/data/${TASK_COLLECTION_NAME}`;
       const taskRef = doc(db, tasksCollectionPath, draggableId);
       await updateDoc(taskRef, updateData);
-      console.log(
-        `Task ${draggableId} status updated to ${newStatus}`
-      );
+      console.log(`Task ${draggableId} status updated to ${newStatus}`);
       if (newStatus === "orderClosed")
         setTriggerConfetti((prev: number) => prev + 1);
     }
@@ -225,6 +234,29 @@ export default function TaskPage() {
     // we primarily care about the column change.
   };
 
+  const sortTasks = (tasks: TTask[], column: { id: string }) => {
+    return tasks
+      .filter((task) => task.status === column.id)
+      .sort((a, b) => {
+        if (!a.taskDeadline && !b.taskDeadline) return 0;
+        if (!a.taskDeadline) return 1;
+        if (!b.taskDeadline) return -1;
+        // Convert Timestamps to ISO strings if necessary before comparing
+        const aDeadline =
+          typeof a.taskDeadline === "string"
+            ? a.taskDeadline
+            : a.taskDeadline instanceof Timestamp
+            ? a.taskDeadline.toDate().toISOString()
+            : "";
+        const bDeadline =
+          typeof b.taskDeadline === "string"
+            ? b.taskDeadline
+            : b.taskDeadline instanceof Timestamp
+            ? b.taskDeadline.toDate().toISOString()
+            : "";
+        return aDeadline.localeCompare(bDeadline); // Descending
+      });
+  };
 
   return (
     <div className="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-6 lg:p-8 flex flex-col font-['Inter',_sans-serif]">
@@ -234,13 +266,6 @@ export default function TaskPage() {
         </h1> */}
       </header>
 
-
-      <button
-        onClick={handleCreateTaskModalOpen}
-        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-md shadow-sm hover:shadow-md transition-all mb-6"
-      >
-        Create Task
-      </button>
       <CreateTaskModal
         isOpen={isCreateTaskModalOpen}
         onClose={() => setIsCreateTaskModalOpen(false)}
@@ -249,20 +274,29 @@ export default function TaskPage() {
       />
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 flex-grow">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 flex-grow"> */}
+        <div
+  className="
+    flex flex-row gap-4 md:gap-6 flex-grow
+    overflow-x-auto
+    pb-2
+    hide-scrollbar
+  "
+  style={{ minHeight: "1px" }} // Ensures flex children don't collapse
+>
           {COLUMNS.map((column) => (
             <KanbanColumn
               key={column.id}
               column={column}
               // Pass tasks specific to this column to KanbanColumn for Droppable
-              tasks={tasks.filter((task) => task.status === column.id)}
+              // tasks={tasks.filter((task) => task.status === column.id)}
+              tasks={sortTasks(tasks, column)}
               onOpenDetailsModal={handleOpenDetailsModal}
               // Removed onDragOver, onDrop, onDragStart as @hello-pangea/dnd handles them
             />
           ))}
         </div>
       </DragDropContext>
-
 
       <CreateTaskModal
         isOpen={alertInfo.isOpen}
@@ -285,20 +319,35 @@ export default function TaskPage() {
             taskId: null,
             newStatus: null,
             dateField: null,
-            statusTitle: '',
-            currentStatusDate: '',
+            statusTitle: "",
+            currentStatusDate: "",
           });
         }}
         onConfirm={confirmDateAndUpdateStatus}
         statusTitle={dateModalData.statusTitle}
         initialDate={dateModalData.currentStatusDate}
       />
+
       <TaskDetailModal
         isOpen={isDetailsModalOpen}
         onClose={handleCloseDetailsModal}
         order={selectedOrderForDetails}
       />
+
       <ConfettiCannon fire={triggerConfetti} />
+
+      {/* Floating Action Button */}
+      <button
+        onClick={handleCreateTaskModalOpen}
+        className={clsx("fixed bottom-6 right-6 z-50",
+          "bg-indigo-600 hover:bg-indigo-700",
+          "text-white text-3xl rounded-full",
+          "w-16 h-16 flex items-center justify-center",
+          "shadow-lg hover:shadow-2xl transition-all cursor-pointer")}
+        aria-label="Add Task"
+      >
+        +
+      </button>
 
       <footer className="mt-6 text-center text-sm text-slate-500">
         <p className="text-sm text-slate-500 mt-1">
