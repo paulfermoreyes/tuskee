@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@firebase/firestore": "^4.7.17",
     "@hello-pangea/dnd": "^18.0.1",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
