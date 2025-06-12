@@ -3,13 +3,25 @@
 
 import { TTask } from "@/types";
 import { formatDate } from "@/utils";
-import { Draggable } from "@hello-pangea/dnd"; // Import Draggable
+import { Draggable, DraggableStateSnapshot } from "@hello-pangea/dnd"; // Import Draggable
+import { Timestamp } from "firebase/firestore";
 
 interface ITaskCard {
   task: TTask;
   index: number; // New prop: index of the item within its list
   onOpenDetailsModal: (order: TTask) => void;
   // Removed onDragStart prop
+}
+
+const hasDatePassedToday = (date: string | undefined): boolean => {
+  if (!date) return false;
+  const taskDate = new Date(date);
+  const today = new Date();
+  return taskDate < today;
+}
+
+const isStillPending = (task: TTask): boolean => {
+  return !["done", "cancelled", undefined].includes(task.status)
 }
 
 export const TaskCard = ({
@@ -34,33 +46,24 @@ export const TaskCard = ({
               onOpenDetailsModal(task);
             }
           }}
-          className={`bg-white p-3 rounded-md shadow-sm mb-3 text-left w-full
-                               ${
-                                 snapshot.isDragging
-                                   ? "shadow-xl ring-2 ring-indigo-500"
-                                   : "hover:shadow-lg transition-shadow cursor-grab"
-                               }`}
-          // Removed draggable HTML attribute and onDragStart event listener
-        >
-          <h4 className="font-semibold text-sm text-slate-800 break-words mb-1">
+          className={"p-3 rounded-md shadow-sm mb-3 text-left w-full"
+            + (snapshot.isDragging ? " shadow-xl ring-2 ring-indigo-500" : " hover:shadow-lg transition-shadow cursor-grab")
+            + (task.status === "cancelled" ? " opacity-50 cursor-not-allowed" : "")
+            + (
+              hasDatePassedToday(task.taskDeadline as string) && isStillPending(task)
+                ? " bg-red-50"
+                : " bg-white"
+            )
+        }>
+          <h4 className={`font-semibold text-sm text-slate-800 break-words mb-1`
+            + (task.status === "cancelled" ? " line-through text-slate-500" : "")
+            + (hasDatePassedToday(task.taskDeadline as string) ? " text-red-800" : "")
+          }>
             {task.description || "No Description"}
           </h4>
-          {task.taskDeadline !== undefined && (
-            <p className="text-xs text-slate-500">
-              Task deadline: {formatDate(task.taskDeadline ?? "")}
-            </p>
-          )}
-          {/* {dateField &&
-            order[dateField as keyof TTask] &&
-            order.status !== "purchaseOrder" && (
-              <p className="text-xs text-slate-500 capitalize">
-                {order.status?.replace(/([A-Z])/g, " $1") ?? "Unknown"} Date:{" "}
-                {formatDate(order[dateField as keyof TTask] ?? "")}
-              </p>
-            )} */}
-          {/* <p className="text-xs text-slate-400 mt-1">
-            ID: {order.id ? order.id.substring(0, 8) + "..." : "N/A"}
-          </p> */}
+          <p className="text-xs text-slate-500">
+            Task deadline: {formatDate(task.taskDeadline ?? "")}
+          </p>
         </div>
       )}
     </Draggable>

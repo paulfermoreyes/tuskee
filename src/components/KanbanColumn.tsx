@@ -16,14 +16,22 @@ interface IKanbanColumn {
   // Removed onDragOver, onDrop, onDragStart props
 }
 
+const renderTasks = (tasks: TTask[], onOpenDetailsModal: (task: TTask) => void) => {
+  return tasks.map((task, index) => (
+    <TaskCard
+      key={task.id}
+      task={task}
+      index={index}
+      onOpenDetailsModal={onOpenDetailsModal}
+    />
+  ));
+};
+
 export const KanbanColumn = ({
   column,
   tasks,
   onOpenDetailsModal,
 }: IKanbanColumn) => {
-  // isDraggingOver state is now managed by the library via snapshot
-  // const [isDraggingOver, setIsDraggingOver] = useState(false); // Remove this
-
   return (
     <Droppable droppableId={column.id}>
       {(
@@ -31,9 +39,8 @@ export const KanbanColumn = ({
         snapshot // Use the render prop pattern
       ) => (
         <div
-          className={`bg-slate-200 p-3 md:p-4 rounded-lg shadow-md flex flex-col ${
-            snapshot.isDraggingOver ? "bg-slate-300/70" : "" // Use snapshot.isDraggingOver
-          } transition-colors`}
+          className={"bg-slate-200 p-3 md:p-4 rounded-lg shadow-md flex flex-col transition-colors min-w-[320px]"
+            + (snapshot.isDraggingOver ? " bg-slate-300/70" : "")}
           aria-label={`Kanban column: ${column.title}`}
           tabIndex={0}
           role="region"
@@ -47,18 +54,9 @@ export const KanbanColumn = ({
           <div
             ref={provided.innerRef} // Apply innerRef to the DOM element
             {...provided.droppableProps} // Apply droppableProps
-            className="kanban-column-content flex-grow min-h-[200px] space-y-0 p-1 rounded-md bg-slate-100/50 overflow-y-auto max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-400px)]"
+            className="kanban-column-content flex-grow min-h-[200px] space-y-0 p-1 rounded-md bg-slate-100/50 overflow-y-auto max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-300px)]"
           >
-            {/* Map over orders and render OrderCard as Draggable */}
-            {tasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={index} // Pass the index prop required by Draggable
-                onOpenDetailsModal={onOpenDetailsModal}
-                // Removed onDragStart prop
-              />
-            ))}
+            {renderTasks(tasks, onOpenDetailsModal)}
             {provided.placeholder} {/* Essential for correct drag visual */}
             {tasks.length === 0 && (
               <p className="text-xs text-slate-400 text-center py-4">
