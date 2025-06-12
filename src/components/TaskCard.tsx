@@ -3,8 +3,7 @@
 
 import { TTask } from "@/types";
 import { formatDate } from "@/utils";
-import { Draggable, DraggableStateSnapshot } from "@hello-pangea/dnd"; // Import Draggable
-import { Timestamp } from "firebase/firestore";
+import { Draggable } from "@hello-pangea/dnd"; // Import Draggable
 
 interface ITaskCard {
   task: TTask;

@@ -20,7 +20,7 @@ export const TaskForm = ({ onCreateTask, isAuthReady, onClose }: ITaskForm) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!description.trim()) {
-      let message = "Task description is required.";
+      const message = "Task description is required.";
 
       setAlertInfo({
         isOpen: true,
