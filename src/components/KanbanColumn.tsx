@@ -4,6 +4,7 @@
 import { TTask } from "@/types";
 import { TaskCard } from "./TaskCard"; // Ensure OrderCard is updated to use Draggable
 import { Droppable } from "@hello-pangea/dnd"; // Import Droppable
+import clsx from "clsx";
 
 interface IKanbanColumn {
   column: {
@@ -16,7 +17,10 @@ interface IKanbanColumn {
   // Removed onDragOver, onDrop, onDragStart props
 }
 
-const renderTasks = (tasks: TTask[], onOpenDetailsModal: (task: TTask) => void) => {
+const renderTasks = (
+  tasks: TTask[],
+  onOpenDetailsModal: (task: TTask) => void
+) => {
   return tasks.map((task, index) => (
     <TaskCard
       key={task.id}
@@ -39,8 +43,10 @@ export const KanbanColumn = ({
         snapshot // Use the render prop pattern
       ) => (
         <div
-          className={"bg-slate-200 p-3 md:p-4 rounded-lg shadow-md flex flex-col transition-colors min-w-[320px]"
-            + (snapshot.isDraggingOver ? " bg-slate-300/70" : "")}
+          className={
+            "bg-slate-200 p-3 md:p-4 rounded-lg shadow-md flex flex-col transition-colors min-w-[320px]" +
+            (snapshot.isDraggingOver ? " bg-slate-300/70" : "")
+          }
           aria-label={`Kanban column: ${column.title}`}
           tabIndex={0}
           role="region"
@@ -54,7 +60,11 @@ export const KanbanColumn = ({
           <div
             ref={provided.innerRef} // Apply innerRef to the DOM element
             {...provided.droppableProps} // Apply droppableProps
-            className="kanban-column-content flex-grow min-h-[200px] space-y-0 p-1 rounded-md bg-slate-100/50 overflow-y-auto max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-300px)]"
+            className={clsx(
+              "kanban-column-content flex-grow min-h-[200px] space-y-0",
+              "p-1 rounded-md bg-slate-100/50",
+              "overflow-y-auto max-h-[calc(100vh-170px)] md:max-h-[calc(100vh-250px)]"
+            )}
           >
             {renderTasks(tasks, onOpenDetailsModal)}
             {provided.placeholder} {/* Essential for correct drag visual */}

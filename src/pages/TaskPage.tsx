@@ -260,12 +260,6 @@ export default function TaskPage() {
 
   return (
     <div className="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-6 lg:p-8 flex flex-col font-['Inter',_sans-serif]">
-      <header className="mb-6 text-center">
-        {/* <h1 className="text-3xl md:text-4xl font-bold text-indigo-600">
-          Tuskee
-        </h1> */}
-      </header>
-
       <CreateTaskModal
         isOpen={isCreateTaskModalOpen}
         onClose={() => setIsCreateTaskModalOpen(false)}
