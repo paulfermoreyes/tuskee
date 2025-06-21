@@ -1,7 +1,7 @@
 # Install dependencies only when needed
 FROM node:20-alpine3.19 AS deps
 WORKDIR /app
-COPY package.json pnpm-lock.yaml*
+COPY package.json pnpm-lock.yaml
 RUN corepack enable
 RUN pnpm install --frozen-lockfile
 
